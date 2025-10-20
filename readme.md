@@ -15,3 +15,7 @@ src/
 ├─ controllers/ --> Logique métier
 ├─ models/ --> Définition des tables Sequelize
 └─ middleware/ --> Auth, validation, etc.
+
+flux complet:
+
+Front React -> POST /api/user/signup -> middleware express-validator -> userController.signup -> User.create (Sequelize) -> DB
