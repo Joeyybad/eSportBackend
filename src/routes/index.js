@@ -1,6 +1,7 @@
 import express from "express";
 import { body } from "express-validator";
 import userController from "../controllers/userController.js";
+import { isAuthenticated } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 //<------------------- User Routes ------------------->//
@@ -84,5 +85,8 @@ router.post(
   ],
   userController.login
 );
+
+// Récupérer le profil de l'utilisateur connecté
+router.get("/user/profile", isAuthenticated(), userController.getProfile);
 
 export default router;

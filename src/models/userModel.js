@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import sequelize from "../config/database.js";
 
 const User = sequelize.define(
-  "User",
+  "users",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -38,8 +38,34 @@ const User = sequelize.define(
       type: DataTypes.BOOLEAN,
       allowNull: false,
     },
+
+    // --- Profil ---
+
+    avatar: {
+      type: DataTypes.STRING,
+      defaultValue: "",
+    },
+    favoritesGames: {
+      type: DataTypes.JSON, // array de strings
+      defaultValue: [],
+    },
+    favoritesTeams: {
+      type: DataTypes.JSON, // array de strings
+      defaultValue: [],
+    },
+
+    // --- Statistiques ---
+    betsWon: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    betsTotal: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
   },
   {
+    tableName: "users",
     hooks: {
       beforeCreate: async (user) => {
         if (user.password && user.password !== "") {

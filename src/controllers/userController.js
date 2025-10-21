@@ -93,6 +93,34 @@ const userController = {
       res.status(500).json({ message: "Erreur serveur" });
     }
   },
+  // Récupérer le profil de l'utilisateur connecté
+  getProfile: async (req, res) => {
+    try {
+      const userId = req.user.id; // Récupérer l'ID utilisateur depuis le token
+
+      // Trouver l'utilisateur dans la base de données
+      const user = await User.findByPk(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Utilisateur non trouvé" });
+      }
+
+      // Retourner les informations du profil
+      return res.status(200).json({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        birthdate: user.birthdate,
+        avatar: user.avatar,
+        favoritesGames: user.favoritesGames,
+        favoritesTeams: user.favoritesTeams,
+        betsWon: user.betsWon,
+        betsTotal: user.betsTotal,
+      });
+    } catch (error) {
+      console.error("Erreur lors de la récupération du profil :", error);
+      return res.status(500).json({ message: "Erreur interne du serveur." });
+    }
+  },
 };
 
 export default userController;
