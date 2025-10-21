@@ -89,4 +89,7 @@ router.post(
 // Récupérer le profil de l'utilisateur connecté
 router.get("/user/profile", isAuthenticated(), userController.getProfile);
 
+// Mettre à jour le profil de l'utilisateur connecté
+router.put("/user/profile", isAuthenticated(), userController.updateProfile);
+
 export default router;

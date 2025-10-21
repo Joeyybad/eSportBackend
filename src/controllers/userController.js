@@ -121,6 +121,35 @@ const userController = {
       return res.status(500).json({ message: "Erreur interne du serveur." });
     }
   },
+  // Mettre à jour le profil de l'utilisateur connecté
+  updateProfile: async (req, res) => {
+    try {
+      const userId = req.user.id; // Récupérer l'ID utilisateur depuis le token
+      const { username, birthdate, avatar, favoritesGames, favoritesTeams } =
+        req.body;
+      // Trouver l'utilisateur dans la base de données
+      const user = await User.findByPk(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Utilisateur non trouvé" });
+      }
+      // Mettre à jour les informations du profil
+      user.username = username || user.username;
+      user.birthdate = birthdate || user.birthdate;
+      user.avatar = avatar || user.avatar;
+      user.favoritesGames = favoritesGames || user.favoritesGames;
+      user.favoritesTeams = favoritesTeams || user.favoritesTeams;
+
+      // Enregistrer les modifications
+      await user.save();
+
+      return res
+        .status(200)
+        .json({ message: "Profil mis à jour avec succès", user });
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du profil :", error);
+      return res.status(500).json({ message: "Erreur interne du serveur." });
+    }
+  },
 };
 
 export default userController;
