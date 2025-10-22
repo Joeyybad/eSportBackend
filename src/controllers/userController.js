@@ -150,6 +150,16 @@ const userController = {
       return res.status(500).json({ message: "Erreur interne du serveur." });
     }
   },
+  // Vérifier le token
+  verifyToken: async (req, res) => {
+    try {
+      const user = await User.findByPk(req.user.id);
+      if (!user) return res.status(404).json({ valid: false });
+      return res.status(200).json({ valid: true, user });
+    } catch (error) {
+      return res.status(500).json({ valid: false });
+    }
+  },
 };
 
 export default userController;
