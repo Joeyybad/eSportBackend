@@ -3,6 +3,9 @@ import { body } from "express-validator";
 import userController from "../controllers/userController.js";
 import matchController from "../controllers/matchController.js";
 import teamController from "../controllers/teamController.js";
+import betController from "../controllers/betController.js";
+import contactController from "../controllers/contactController.js";
+import tournamentController from "../controllers/tournamentController.js";
 import { isAuthenticated } from "../middleware/authMiddleware.js";
 import upload from "../config/multer-config.js";
 const router = express.Router();
@@ -228,18 +231,73 @@ router.post(
 );
 
 // Mettre à jour un match
-router.put("/match/:id", isAuthenticated(), matchController.update);
+router.put("/match/:id", isAuthenticated(["admin"]), matchController.update);
+
+//Mettre à jour le résultat d'un match
+router.put(
+  "/match/:id/result",
+  isAuthenticated(["admin"]),
+  matchController.updateMatchResult
+);
 
 // Supprimer un match
-router.delete("/match/:id", isAuthenticated(), matchController.delete);
-
-// Mettre à jour un match
-router.put("/match/:id", isAuthenticated(), matchController.update);
-
-// Supprimer un match
-router.delete("/match/:id", isAuthenticated(), matchController.delete);
+router.delete("/match/:id", isAuthenticated(["admin"]), matchController.delete);
 
 //<------------------- Fin Matchs Routes ------------------->//
+
+//<------------------- Début Tournaments Routes ------------------->//
+
+//Match par tournois
+router.get("/tournaments/:id/matches", matchController.MatchByTournament);
+
+// Lister tous les tournois
+router.get("/tournaments", tournamentController.getTournament);
+// Récupérer un tournoi par son ID
+router.get("/tournaments/:id", tournamentController.getTournamentById);
+
+router.post(
+  "/tournaments",
+  [
+    body("name")
+      .notEmpty()
+      .withMessage("Le nom du tournoi est requis")
+      .isLength({ min: 2 })
+      .withMessage("Le nom du tournoi doit contenir au moins 2 caractères")
+      .trim()
+      .escape(),
+    body("description")
+      .notEmpty()
+      .withMessage("La description du tournoi est requise")
+      .isLength({ min: 10 })
+      .withMessage(
+        "La description du tournoi doit contenir au moins 10 caractères"
+      )
+      .trim()
+      .escape(),
+    body("startDate")
+      .notEmpty()
+      .withMessage("La date de début est requise")
+      .isISO8601()
+      .withMessage("La date de début doit être au format ISO 8601")
+      .toDate(),
+    body("endDate")
+      .optional()
+      .isISO8601()
+      .withMessage("La date de fin doit être au format ISO 8601")
+      .toDate(),
+  ],
+  isAuthenticated(["admin"]),
+  tournamentController.createTournament
+);
+router.put("/:id", isAuthenticated(["admin"]), tournamentController.update);
+
+router.delete(
+  "/tournaments/:id",
+  isAuthenticated(["admin"]),
+  tournamentController.delete
+);
+
+//<------------------- Fin Tournaments Routes ------------------->//
 
 //<------------------- Team Routes ------------------->//
 
@@ -294,5 +352,61 @@ router.put(
 router.delete("/team/:id", isAuthenticated(), teamController.deleteTeam);
 
 //<------------------- Fin Team Routes ------------------->//
+
+//<------------------- Bets Routes ------------------->//
+
+router.get("/bets/user", isAuthenticated(), betController.getBetsByUser);
+router.post(
+  "/bets",
+  isAuthenticated(),
+  [
+    body("matchId")
+      .notEmpty()
+      .withMessage("L'ID du match est requis.")
+      .isInt({ min: 1 })
+      .withMessage("L'ID du match doit être un nombre valide."),
+
+    body("amount")
+      .notEmpty()
+      .withMessage("Le montant est requis.")
+      .isFloat({ min: 0.1 })
+      .withMessage("Le montant doit être supérieur à 0."),
+
+    body("prediction")
+      .notEmpty()
+      .withMessage("La prédiction est obligatoire.")
+      .isIn(["home", "away", "draw"])
+      .withMessage("La prédiction doit être 'home', 'away' ou 'draw'."),
+  ],
+  betController.createBet
+);
+//<------------------- Fin Bets Routes ------------------->//
+
+//<------------------- Contact Routes ------------------->//
+
+router.post(
+  "/contact",
+  [
+    body("username")
+      .notEmpty()
+      .withMessage("Le nom d'utilisateur est requis.")
+      .trim()
+      .escape(),
+    body("email")
+      .notEmpty()
+      .withMessage("L'adresse e-mail est requise.")
+      .isEmail()
+      .withMessage("L'adresse e-mail doit être valide.")
+      .normalizeEmail(),
+    body("message")
+      .notEmpty()
+      .withMessage("Le message est requis.")
+      .trim()
+      .escape(),
+  ],
+  contactController.createContactMessage
+);
+
+//<------------------- Fin Contact Routes ------------------->//
 
 export default router;

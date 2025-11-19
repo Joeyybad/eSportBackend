@@ -17,7 +17,6 @@ const User = sequelize.define(
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
       validate: {
         isEmail: true,
       },
@@ -61,6 +60,10 @@ const User = sequelize.define(
     },
     betsTotal: {
       type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    totalEarnings: {
+      type: DataTypes.FLOAT,
       defaultValue: 0,
     },
   },

@@ -1,11 +1,11 @@
 // server.js
+import express from "express";
 import dotenv from "dotenv";
 import app from "./src/app.js";
 import { sequelize } from "./src/config/database.js";
 import path from "path";
 import { fileURLToPath } from "url";
-import Team from "./models/teamModel.js";
-import Match from "./models/matchModel.js";
+import { startMatchStatusJob } from "./src/jobs/updateMatchStatus.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,8 +20,8 @@ async function startServer() {
     await sequelize.authenticate();
     console.log("Connexion à la base de données réussie.");
 
-    // ⚠️ Synchronisation forcée pour mise à jour des relations
-    await sequelize.sync({ force: true });
+    //Synchronisation forcée pour mise à jour des relations
+    await sequelize.sync({ alter: true });
     console.log("Base de données synchronisée (tables recréées).");
 
     app.listen(PORT, () => {
@@ -33,3 +33,4 @@ async function startServer() {
 }
 
 startServer();
+startMatchStatusJob();

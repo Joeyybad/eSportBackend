@@ -36,7 +36,7 @@ const teamController = {
       const { teamName, description, game } = req.body;
       const logo = req.file ? `/uploads/${req.file.filename}` : null;
 
-      // ✅ Validation simple côté serveur
+      // Validation côté serveur
       if (!teamName || teamName.trim().length < 2) {
         return res.status(400).json({ message: "Nom d'équipe invalide" });
       }
