@@ -2,6 +2,30 @@ Nkunga Jordan
 
 ## EsportEvoBackend
 
+# Etape pour mise en place
+
+- Pré requis :
+
+Node.js ≥ 18
+npm ≥ 9
+MySQL ≥ 8
+Git
+
+- Création de la base de donnée :
+
+CREATE DATABASE esportevo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+.env pour la configuration
+
+- Installation :
+
+npm install dans le dossier du projet
+
+- Lancement :
+  npm start (nodemon)
+
+le serveur se lance sur http://localhost:3000
+
 # Choix technologie et structure
 
 Environnement : Nodejs NPM
@@ -15,40 +39,92 @@ Etant donnée que je ne connaissais pas React, le framework front le plus connu/
 
 Le choix de l'architecture MVC semble la plus approprié surtout avec l'utilisation de la POO c'est une solution qui permet une maintenabilité sereine dans la mesure ou les rôles sont bien séparé. J'ai principalement travaillé en procédural avec le JS donc ça m'a permis de voir à quoi ça ressemble ( vu le MVC POO avec java springboot).
 
-Express Sequelize et SQL je connaissais déjà et vu que je manquais de temps ( congé paternité ) et que j'expérimentais react je ne pouvais pas me permettre de rajouter d'autres nouveauté ( TS, Next etc )
+Express Sequelize et SQL je connaissais déjà et vu que je manquais de temps ( congé paternité ) et que j'expérimentais react je ne pouvais pas me permettre de rajouter d'autres nouveauté ( TS, Next etc ) et avoir un rendu V0 suffisant.
 
-j'ai réalisé le projet en procédural je me suis inspiré des travaux que j'ai déjà fait notamment pour le système d'authentification et une fois fait j'ai migré pour la POO avec injection de dépendance.
+j'ai commencé par réaliser le projet en procédural, je me suis inspiré des travaux que j'ai déjà fait notamment pour le système d'authentification et une fois fait j'ai migré pour la POO avec injection de dépendance.
 
 # structure du projet
 
 npm start --> Démarre le serveur (nodemon)
 
-.env --> Variables d'environnement / secrets
-readme.md
-server.js
-src/
-├─ app.js --> Configure express, middlewares, routes
-|_ di.js --> dépendance injection
-├─ config/
-│ └─ database.js --> Connexion Sequelize / MySQL
-| |_ multer-config.js --> gestion des images
-|_domain
-├─ routes/
-│ └─ index.js --> Déclaration des routes API
-├─ controllers/ --> récupèrent le service
-|_ jobs/
-| |_ UpdateMatchStatus.js --> job mise à jour des statuts des matchs
-├─ models/ --> Définition des tables Sequelize
-└─ middleware/ --> Auth, validation, errorHandler.
-|\_Services --> Logique métier
-|\_Validators --> Middlewares de validations spécifiques
-|_ uploads/
-|\_ fichiers image
+/EsportEvoBackend
+│
+├── server.js Point d’entrée du serveur (Express + DB + cron jobs)
+├── .env Variables d’environnement (JWT, BDD…)
+├── README.md Documentation du projet
+│
+└── src/
+├── app.js Configuration d’Express, middlewares globaux, injection des routes
+├── di.js Centralisation de la dépendance injection
+│
+├── config/
+│ ├── database.js Connexion + configuration Sequelize
+│ └── multer-config.js Upload d’images (avatar, logo, etc.)
+│
+├── domain/ Entités métiers
+│ ├── User.js
+│ ├── Team.js
+│ ├── Match.js
+│ ├── Tournament.js
+│ └── Bet.js
+│
+├── models/ Modèles Sequelize (mapping DB SQL)
+│ ├── userModel.js
+│ ├── teamModel.js
+│ ├── matchModel.js
+│ ├── tournamentModel.js
+│ ├── betModel.js
+│ └── index.js Centralise les modèles + associations
+│
+├── services/ Logique métier
+│ ├── UserService.js
+│ ├── TeamService.js
+│ ├── MatchService.js
+│ ├── TournamentService.js
+│ ├── BetService.js
+│ └── ContactService.js
+│
+├── controllers/ Reçoivent la requête, appellent les services, renvoient la réponse
+│ ├── userController.js
+│ ├── teamController.js
+│ ├── matchController.js
+│ ├── tournamentController.js
+│ ├── betController.js
+│ └── contactController.js
+│
+├── routes/ Déclaration des routes + middlewares associés
+│ ├── index.js Regroupe toutes les routes /api/\*
+│ ├── userRoutes.js
+│ ├── teamRoutes.js
+│ ├── matchRoutes.js
+│ ├── tournamentRoutes.js
+│ ├── betRoutes.js
+│ └── contactRoutes.js
+│
+├── middleware/ Middlewares globaux
+│ ├── authMiddleware.js Vérification du token + rôles
+│ ├── Validation.js Gestion express-validator
+│ └── errorHandler.js Gestion des erreurs globales
+│
+├── validators/ Middlewares de validation spécifiques
+│ ├── userValidator.js
+│ ├── teamValidator.js
+│ ├── matchValidator.js
+│ ├── tournamentValidator.js
+│ ├── betValidator.js
+│ └── contactValidator.js
+│
+├── jobs/ Cron jobs automatiques
+│ ├── updateMatchStatus.js Mise à jour du statut des matchs (scheduled → live → completed)
+│ └── updateTournamentStatus.js (Mise à jour du statut des tournois)
+│
+└── uploads/ Dossier des images uploadées
+└── (avatars, logos, etc.)
 
-<!-- flux complet:
+<!-- flux complet de l'app
 
-Front React -> requête CRUD -> middleware express-validator -> Controller methods -> Sequelize methods -> DB ->
-
+React → Routes → Validators → Controller → Service → Sequelize → MySQL
+      ← JSON Response ←
 -->
 
 ## Remarque sur certaines fonctionnalités
