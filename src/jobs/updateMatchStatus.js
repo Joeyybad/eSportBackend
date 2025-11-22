@@ -1,45 +1,32 @@
-import Match from "../models/matchModel.js";
+import { matchService } from "../di.js";
 
-const MATCH_DURATION = 120; // 2 heures
+const MATCH_DURATION = 120;
 
 const updateMatchStatuses = async () => {
   try {
+    const matches = await matchService.getMatchesToUpdate();
+
     const now = new Date();
 
-    // Récupérer tous les matchs qui ne sont pas encore "completed"
-    const matches = await Match.findAll({
-      where: {
-        status: ["scheduled", "live"],
-      },
-    });
-
     for (const match of matches) {
-      const matchStart = new Date(match.date);
-      const matchEnd = new Date(matchStart.getTime() + MATCH_DURATION * 60000);
+      const start = new Date(match.date);
+      const end = new Date(start.getTime() + MATCH_DURATION * 60000);
 
-      let newStatus = match.status;
+      let status = "scheduled";
+      if (now >= start && now <= end) status = "live";
+      if (now > end) status = "completed";
 
-      if (now >= matchStart && now <= matchEnd) {
-        newStatus = "live";
-      } else if (now > matchEnd) {
-        newStatus = "completed";
-      } else {
-        newStatus = "scheduled";
-      }
-
-      if (newStatus !== match.status) {
-        match.status = newStatus;
-        await match.save();
-        console.log(`Match ${match.id} statut mis à jour → ${newStatus}`);
+      if (status !== match.status) {
+        await matchService.updateStatus(match.id, status);
+        console.log(`Match ${match.id} mis à jour → ${status}`);
       }
     }
   } catch (err) {
-    console.error("Erreur mise à jour des statuts :", err);
+    console.error("Erreur job match:", err);
   }
 };
 
-// Lance le job toutes les 1 minute
 export const startMatchStatusJob = () => {
-  setInterval(updateMatchStatuses, 60 * 1000);
-  console.log("Job de mise à jour des statuts de match lancé");
+  setInterval(updateMatchStatuses, 60000);
+  console.log("Job match OK");
 };

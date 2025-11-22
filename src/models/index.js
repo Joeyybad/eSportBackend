@@ -4,8 +4,9 @@ import Match from "./matchModel.js";
 import Tournament from "./tournamentModel.js";
 import User from "./userModel.js";
 import Bet from "./betModel.js";
+import Contact from "./contactModel.js";
 // ============================
-//       TEAM ↔ MATCH
+//       TEAM <--> MATCH
 // ============================
 
 Team.hasMany(Match, {
@@ -31,7 +32,7 @@ Match.belongsTo(Team, {
 });
 
 // ============================
-//     TOURNAMENT ↔ MATCH
+//     TOURNAMENT <--> MATCH
 // ============================
 
 Tournament.hasMany(Match, {
@@ -46,7 +47,7 @@ Match.belongsTo(Tournament, {
 });
 
 // ============================
-//        USER ↔ BET
+//        USER <--> BET
 // ============================
 
 User.hasMany(Bet, {
@@ -59,7 +60,7 @@ Bet.belongsTo(User, {
 });
 
 // ============================
-//        MATCH ↔ BET
+//        MATCH <--> BET
 // ============================
 
 Match.hasMany(Bet, {
@@ -71,4 +72,4 @@ Bet.belongsTo(Match, {
   foreignKey: "matchId",
 });
 
-export { Team, Match, Tournament, User, Bet };
+export { Team, Match, Tournament, User, Bet, Contact, sequelize };

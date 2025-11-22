@@ -1,116 +1,64 @@
-import { validationResult } from "express-validator";
-import Team from "../models/teamModel.js";
-import dotenv from "dotenv";
-dotenv.config();
-
-//<---------- TeamController ---------->//
-
-const teamController = {
-  // lister toutes les équipes
-  getAllTeams: async (req, res) => {
+class TeamController {
+  constructor(teamService) {
+    this.service = teamService;
+  }
+  // Récupérer toutes les équipes
+  getAll = async (req, res) => {
     try {
-      const teams = await Team.findAll();
+      const teams = await this.service.getAll();
       res.json(teams);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des équipes :", error);
-      res.status(500).json({ error: "Erreur serveur" });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
     }
-  },
-  // récupérer une équipe par son ID
-  getTeamById: async (req, res) => {
+  };
+  // Récupérer l'équipe par Id
+  getById = async (req, res) => {
     try {
-      const team = await Team.findByPk(req.params.id);
-      if (!team) {
-        return res.status(404).json({ error: "Équipe non trouvée" });
-      }
+      const team = await this.service.getById(req.params.id);
+      if (!team) return res.status(404).json({ message: "Équipe introuvable" });
+
       res.json(team);
-    } catch (error) {
-      console.error("Erreur lors de la récupération de l'équipe :", error);
-      res.status(500).json({ error: "Erreur serveur" });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
     }
-  },
-
-  //Créer une équipe
-  createTeam: async (req, res) => {
+  };
+  // Créer une équipe
+  create = async (req, res) => {
     try {
-      const { teamName, description, game } = req.body;
-      const logo = req.file ? `/uploads/${req.file.filename}` : null;
+      const data = { ...req.body };
+      if (req.file) data.logo = req.file.filename;
 
-      // Validation côté serveur
-      if (!teamName || teamName.trim().length < 2) {
-        return res.status(400).json({ message: "Nom d'équipe invalide" });
-      }
-
-      if (!game || game.trim().length < 2) {
-        return res.status(400).json({ message: "Nom du jeu invalide" });
-      }
-
-      if (!description || description.trim().length < 10) {
-        return res.status(400).json({ message: "Description trop courte" });
-      }
-
-      // Vérification si une équipe existe déjà
-      const team = await Team.findOne({
-        where: { teamName: teamName },
-      });
-
-      if (team) {
-        const error = "Cette équipe existe déjà";
-        return res.status(400).json({ message: error });
-      } else {
-        // Création de l’équipe
-        const newTeam = await Team.create({
-          teamName,
-          description,
-          game,
-          logo,
-        });
-
-        return res.status(201).json({
-          message: "Équipe créée avec succès",
-          team: newTeam,
-        });
-      }
-    } catch (error) {
-      console.error("Erreur création équipe :", error);
-      return res.status(500).json({ message: "Erreur serveur" });
+      const team = await this.service.create(data);
+      res.status(201).json(team);
+    } catch (err) {
+      res.status(400).json({ message: err.message });
     }
-  },
-
-  // Mettre à jour une équipe
-  updateTeam: async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+  };
+  //Modifier une équipe *
+  update = async (req, res) => {
     try {
-      const team = await Team.findByPk(req.params.id);
-      if (!team) {
-        return res.status(404).json({ error: "Équipe non trouvée" });
-      }
-      const { teamName, description, game } = req.body;
-      const logo = req.file ? `/uploads/${req.file.filename}` : team.logo;
-      await team.update({ teamName, description, game, logo });
+      const data = { ...req.body };
+      if (req.file) data.logo = req.file.filename;
+
+      const team = await this.service.update(req.params.id, data);
+      if (!team) return res.status(404).json({ message: "Équipe introuvable" });
+
       res.json(team);
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour de l'équipe :", error);
-      res.status(500).json({ error: "Erreur serveur" });
+    } catch (err) {
+      res.status(400).json({ message: err.message });
     }
-  },
-  // Supprimer une équipe
-  deleteTeam: async (req, res) => {
+  };
+  // Supprimer une équipe *
+  delete = async (req, res) => {
     try {
-      const team = await Team.findByPk(req.params.id);
-      if (!team) {
-        return res.status(404).json({ error: "Équipe non trouvée" });
-      }
-      await team.destroy();
-      res.json({ message: "Équipe supprimée avec succès" });
-    } catch (error) {
-      console.error("Erreur lors de la suppression de l'équipe :", error);
-      res.status(500).json({ error: "Erreur serveur" });
-    }
-  },
-};
+      const success = await this.service.delete(req.params.id);
+      if (!success)
+        return res.status(404).json({ message: "Équipe introuvable" });
 
-export default teamController;
+      res.json({ message: "Équipe supprimée" });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  };
+}
+export default TeamController;

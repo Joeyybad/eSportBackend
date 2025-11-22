@@ -6,6 +6,7 @@ import { sequelize } from "./src/config/database.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { startMatchStatusJob } from "./src/jobs/updateMatchStatus.js";
+import { startTournamentStatusJob } from "./src/jobs/updateTournamentStatus.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,3 +35,4 @@ async function startServer() {
 
 startServer();
 startMatchStatusJob();
+startTournamentStatusJob();

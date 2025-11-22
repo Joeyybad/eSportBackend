@@ -32,7 +32,7 @@ const Bet = sequelize.define(
       type: DataTypes.FLOAT,
       allowNull: false,
       validate: {
-        min: 0.1,
+        min: 1,
       },
     },
 
@@ -61,6 +61,5 @@ const Bet = sequelize.define(
     timestamps: true,
   }
 );
-
 
 export default Bet;

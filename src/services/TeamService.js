@@ -33,4 +33,4 @@ class TeamService {
     return true;
   }
 }
-export default new TeamService();
+export default TeamService;

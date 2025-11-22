@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "../../uploads")); // dossier uploads à la racine du projet
+    cb(null, path.join(__dirname, "../../uploads"));
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
@@ -23,7 +23,11 @@ const fileFilter = (req, file, cb) => {
   if (mimetype && extname) {
     cb(null, true);
   } else {
-    cb(new Error("Seules les images (jpeg, jpg, png, webp) sont autorisées !"));
+    cb(
+      new Error(
+        "Seules les images (jpeg, jpg, png, webp, svg) sont autorisées !"
+      )
+    );
   }
 };
 

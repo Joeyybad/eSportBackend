@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const isAuthenticated = (roles = []) => {
-  // roles peut être un tableau comme ['admin', 'moderator']
   return (req, res, next) => {
     const authHeader = req.headers.authorization;
 

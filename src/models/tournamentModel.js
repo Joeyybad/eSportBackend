@@ -1,6 +1,5 @@
 import sequelize from "../config/database.js";
 import { DataTypes } from "sequelize";
-import Match from "./matchModel.js";
 
 const Tournament = sequelize.define(
   "Tournament",

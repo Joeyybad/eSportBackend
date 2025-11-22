@@ -21,7 +21,6 @@ class Match {
     this.homeTeamId = homeTeamId;
     this.awayTeamId = awayTeamId;
 
-    // Associations (optionnelles selon include)
     this.homeTeam = homeTeam || null;
     this.awayTeam = awayTeam || null;
 

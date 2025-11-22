@@ -1,7 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 import Team from "./teamModel.js";
-import Tournament from "./tournamentModel.js";
 
 const Match = sequelize.define(
   "Match",
@@ -54,7 +53,7 @@ const Match = sequelize.define(
       defaultValue: "scheduled",
     },
     result: {
-      type: DataTypes.STRING, // ou DataTypes.JSON si tu veux stocker un score détaillé
+      type: DataTypes.STRING,
       allowNull: true,
     },
     event: {
