@@ -21,10 +21,14 @@ CREATE DATABASE esportevo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 npm install dans le dossier du projet
 
+Lancer mysql et vérifier le port sur lequel il écoute
+
+vérifier le .env pour qu'il coincide avec les ID du poste en question sinon crée l'user défini avec le mot de passe pour que sequelize puisse se synchroniser avec la DB
+
 - Lancement :
   npm start (nodemon)
 
-le serveur se lance sur http://localhost:3000
+le serveur se lance sur http://localhost:5000
 
 # Choix technologie et structure
 
@@ -132,5 +136,3 @@ React → Routes → Validators → Controller → Service → Sequelize → MyS
 Les méthodes de Service Controller accompagné d'un \* sont des fonctions non finie car pas determinante pour l'énoncer/ la demande
 Fonctionnalité contact non finie
 Fonctionnalité de modification et suppression d'équipe non faite récupération individuelles des équipes non faites accès à la liste des équipes que par l'admin (à changer)
-
-Mot de passe défini 8 "MonMdp123!" convient très bien pour les tests mais sinon 14 caractères selon les recommandations

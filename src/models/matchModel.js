@@ -68,7 +68,7 @@ const Match = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: "Tournaments",
+        model: "tournaments",
         key: "id",
       },
     },
