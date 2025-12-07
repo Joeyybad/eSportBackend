@@ -14,8 +14,8 @@ class BetController {
   //Crée un paris
   create = async (req, res) => {
     try {
-      // console.log("Token Payload (req.user):", req.user);
-      // const userId = req.user?.id;
+      console.log("Token Payload (req.user):", req.user);
+      const userId = req.user?.id;
 
       if (!userId) {
         return res

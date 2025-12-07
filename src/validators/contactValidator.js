@@ -2,7 +2,7 @@ import { check } from "express-validator";
 
 export default {
   create: [
-    check("username").notEmpty().withMessage("Nom d'utilisateur requis"),
+    check("name").notEmpty().withMessage("Nom d'utilisateur requis"),
 
     check("email")
       .notEmpty()

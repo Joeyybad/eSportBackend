@@ -1,6 +1,9 @@
 import { matchService } from "../di.js";
 
-const MATCH_DURATION = 120;
+// Durée estimée d'un match en minutes.
+// Sert de seuil de sécurité pour passer automatiquement un match en "completed"
+// ou pour déclencher des alertes si le match dépasse cette durée sans résultat.
+const MATCH_DURATION_MINUTES = 120;
 
 const updateMatchStatuses = async () => {
   try {
@@ -10,7 +13,7 @@ const updateMatchStatuses = async () => {
 
     for (const match of matches) {
       const start = new Date(match.date);
-      const end = new Date(start.getTime() + MATCH_DURATION * 60000);
+      const end = new Date(start.getTime() + MATCH_DURATION_MINUTES * 60000);
 
       let status = "scheduled";
       if (now >= start && now <= end) status = "live";

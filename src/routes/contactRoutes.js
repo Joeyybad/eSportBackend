@@ -7,7 +7,7 @@ const router = Router();
 
 // Envoyer un message *
 router.post(
-  "/contact",
+  "/create",
   contactValidator.create,
   validate,
   contactController.createContactMessage

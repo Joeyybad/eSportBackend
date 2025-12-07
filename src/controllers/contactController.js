@@ -6,16 +6,18 @@ class ContactController {
   createContactMessage = async (req, res) => {
     try {
       const { name, email, sujet, message } = req.body;
+
       const newMessage = await this.service.create({
         name,
         email,
         sujet,
         message,
       });
+      res.status(201).json(newMessage);
     } catch (err) {
+      console.error(err);
       res.status(500).json({ message: err.message });
     }
-    res.status(201).json(newMessage);
   };
 }
 
