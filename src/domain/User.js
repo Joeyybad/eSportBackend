@@ -15,6 +15,7 @@ class User {
     betsWon,
     betsTotal,
     totalEarnings,
+    Bets,
   }) {
     this.id = id;
     this.username = username;
@@ -25,7 +26,7 @@ class User {
     this.favoritesGames = favoritesGames || [];
     this.favoritesTeams = favoritesTeams || [];
     this.birthdate = birthdate;
-    this.password = password; // sans renvoyer le mdp au front
+    this.password = password;
     this.isConditionChecked = isConditionChecked;
     this.betsWon = betsWon || 0;
     this.betsTotal = betsTotal || 0;
@@ -33,6 +34,7 @@ class User {
 
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.Bets = Bets || [];
   }
 
   isAdmin() {
@@ -49,13 +51,14 @@ class User {
       favoritesGames: this.favoritesGames,
       favoritesTeams: this.favoritesTeams,
       birthdate: this.birthdate,
-      // password: this.password,
+      // password: this.password, // Sécurité : on ne renvoie jamais le MDP
       isConditionChecked: this.isConditionChecked,
       betsWon: this.betsWon,
       betsTotal: this.betsTotal,
       totalEarnings: this.totalEarnings,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      Bets: this.Bets,
     };
   }
 }

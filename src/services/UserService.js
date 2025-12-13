@@ -1,14 +1,21 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { User as UserModel } from "../models/index.js";
+import { User as UserModel, Bet as BetModel } from "../models/index.js";
 import User from "../domain/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 class UserService {
   async getById(id) {
-    const row = await UserModel.findByPk(id);
+    const row = await UserModel.findByPk(id, {
+      include: [
+        {
+          model: BetModel,
+          as: "Bets",
+        },
+      ],
+    });
     return row ? new User(row.toJSON()) : null;
   }
   async create(data) {

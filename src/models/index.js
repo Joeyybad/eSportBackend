@@ -51,12 +51,14 @@ Match.belongsTo(Tournament, {
 // ============================
 
 User.hasMany(Bet, {
+  as: "Bets",
   foreignKey: "userId",
   onDelete: "CASCADE",
 });
 
 Bet.belongsTo(User, {
   foreignKey: "userId",
+  as: "user",
 });
 
 // ============================

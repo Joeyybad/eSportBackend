@@ -22,7 +22,7 @@ async function startServer() {
     console.log("Connexion à la base de données réussie.");
 
     //Synchronisation forcée pour mise à jour des relations
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({});
     console.log("Base de données synchronisée (tables recréées).");
 
     app.listen(PORT, () => {
