@@ -2,9 +2,9 @@ import { check } from "express-validator";
 
 export default {
   create: [
-    check("name").notEmpty().withMessage("Nom du tournoi requis"),
+    check("name").notEmpty().withMessage("Nom du tournoi requis").escape(),
 
-    check("game").notEmpty().withMessage("Jeu requis"),
+    check("game").notEmpty().withMessage("Jeu requis").escape(),
 
     check("description").optional(),
 

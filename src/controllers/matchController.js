@@ -5,8 +5,12 @@ class MatchController {
   //Récupère tous les matchs
   getAllMatches = async (req, res) => {
     try {
-      const matches = await this.service.getAllMatches();
-      res.json(matches);
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 6;
+
+      const result = await this.service.getAllMatches(page, limit);
+
+      res.json(result);
     } catch (err) {
       res.status(500).json({ message: err.message });
     }

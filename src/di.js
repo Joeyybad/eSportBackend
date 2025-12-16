@@ -1,3 +1,6 @@
+import MatchRepository from "./repositories/MatchRepository.js";
+import TeamRepository from "./repositories/TeamRepository.js";
+
 import UserService from "./services/UserService.js";
 import TeamService from "./services/TeamService.js";
 import MatchService from "./services/MatchService.js";
@@ -12,16 +15,19 @@ import TournamentController from "./controllers/tournamentController.js";
 import BetController from "./controllers/betController.js";
 import ContactController from "./controllers/contactController.js";
 
+// INITIALISATION DES REPOSITORIES
+const teamRepository = new TeamRepository();
+const matchRepository = new MatchRepository();
+
 // INITIALISATION DES SERVICES (singletons)
-// export pour rendre accessibles aux JOBS
 export const userService = new UserService();
-export const teamService = new TeamService();
-export const matchService = new MatchService();
+export const teamService = new TeamService(new TeamRepository());
+export const matchService = new MatchService(new MatchRepository());
 export const tournamentService = new TournamentService();
 export const betService = new BetService();
 export const contactService = new ContactService();
 
-// INITIALISATION DES CONTROLLERS (DI = dependency injection)
+// INITIALISATION DES CONTROLLERS
 export const userController = new UserController(userService);
 export const teamController = new TeamController(teamService);
 export const matchController = new MatchController(matchService);

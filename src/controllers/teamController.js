@@ -5,7 +5,9 @@ class TeamController {
   // Récupérer toutes les équipes
   getAll = async (req, res) => {
     try {
-      const teams = await this.service.getAll();
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 6;
+      const teams = await this.service.getAll(page, limit);
       res.json(teams);
     } catch (err) {
       res.status(500).json({ message: err.message });

@@ -6,13 +6,15 @@ export default {
       .notEmpty()
       .withMessage("Nom d'utilisateur requis")
       .isLength({ min: 3 })
-      .withMessage("3 caractères minimum"),
+      .withMessage("3 caractères minimum")
+      .escape(),
 
     check("email")
       .notEmpty()
       .withMessage("Email requis")
       .isEmail()
-      .withMessage("Email invalide"),
+      .withMessage("Email invalide")
+      .escape(),
 
     check("birthdate")
       .notEmpty()
@@ -94,7 +96,8 @@ export default {
       .notEmpty()
       .withMessage("Email requis")
       .isEmail()
-      .withMessage("Email invalide"),
+      .withMessage("Email invalide")
+      .escape(),
 
     check("password").notEmpty().withMessage("Mot de passe requis"),
   ],
@@ -102,6 +105,7 @@ export default {
     check("username")
       .optional()
       .trim()
+      .escape()
       .isLength({ min: 3 })
       .withMessage("Le pseudo doit contenir au moins 3 caractères."),
 
@@ -114,11 +118,13 @@ export default {
     check("avatar")
       .optional()
       .isString()
+      .escape()
       .withMessage("Le champ avatar doit être une chaîne de caractères."),
 
     check("favoritesGames")
       .optional()
       .isArray()
+      .escape()
       .withMessage(
         "Les jeux favoris doivent être envoyés sous forme de tableau (Array)."
       )
@@ -134,6 +140,7 @@ export default {
     check("favoritesTeams")
       .optional()
       .isArray()
+      .escape()
       .withMessage(
         "Les équipes favorites doivent être envoyées sous forme de tableau (Array)."
       )
@@ -145,8 +152,5 @@ export default {
       .withMessage(
         "Chaque équipe favorite doit être une chaîne de caractères non vide."
       ),
-
-    //  Gestion du mot de passe future Si le mot de passe est inclus dans une autre modale, assurez-vous de le valider ici aussi:
-    // body("password").optional().isLength({ min: 8 }).withMessage("Le mot de passe doit contenir au moins 8 caractères."),
   ],
 };

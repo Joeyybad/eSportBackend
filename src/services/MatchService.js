@@ -1,142 +1,134 @@
-import {
-  Match as MatchModel,
-  Team as TeamModel,
-  Tournament as TournamentModel,
-  Bet,
-  User,
-} from "../models/index.js";
 import Match from "../domain/Match.js";
-import { Op } from "sequelize";
+import { Bet, User } from "../models/index.js"; // On garde ça pour l'instant
+import TournamentService from "./TournamentService.js";
 
 class MatchService {
-  async getAllMatches() {
-    const rows = await MatchModel.findAll({
-      include: [
-        {
-          model: TeamModel,
-          as: "homeTeam",
-        },
-        {
-          model: TeamModel,
-          as: "awayTeam",
-        },
-        {
-          model: TournamentModel,
-          as: "tournament",
-        },
-      ],
-      order: [["date", "DESC"]],
+  // Injection du Repository ET du TournamentService (si besoin via DI ou instanciation interne)
+  constructor(matchRepository) {
+    this.matchRepository = matchRepository;
+    this.tournamentService = new TournamentService(); // Idéalement injecté aussi, mais ok ici
+  }
+
+  async getAllMatches(page = 1, limit = 6) {
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await this.matchRepository.findAndCountAll({
+      limit,
+      offset,
     });
 
-    return rows.map((row) => new Match(row.toJSON()));
+    return {
+      matches: rows.map((row) => new Match(row.toJSON())),
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+    };
   }
 
   async getMatchById(id) {
-    const row = await MatchModel.findByPk(id, {
-      include: [
-        {
-          model: TeamModel,
-          as: "homeTeam",
-        },
-        {
-          model: TeamModel,
-          as: "awayTeam",
-        },
-        {
-          model: TournamentModel,
-          as: "tournament",
-        },
-      ],
+    const row = await this.matchRepository.findById(id);
+    return row ? new Match(row.toJSON()) : null;
+  }
+
+  // Utilisé par le JOB CRON
+  async getMatchesToUpdate() {
+    const rows = await this.matchRepository.findAll({
+      where: {
+        status: ["scheduled", "live"], // Sequelize comprend le tableau comme un "OR"
+      },
     });
-
-    if (!row) return null;
-
-    return new Match(row.toJSON());
+    return rows.map((row) => new Match(row.toJSON()));
   }
 
-  async create(data) {
-    const row = await MatchModel.create(data);
-    return new Match(row.toJSON());
-  }
-
-  async update(id, data) {
-    const row = await MatchModel.findByPk(id);
-    if (!row) return null;
-
-    await row.update(data);
-    return new Match(row.toJSON());
-  }
-
-  async delete(id) {
-    const row = await MatchModel.findByPk(id);
-    if (!row) return false;
-
-    await row.destroy();
-    return true;
-  }
   async updateStatus(id, newStatus) {
-    const valid = ["scheduled", "live", "completed", "cancelled"];
-    if (!valid.includes(newStatus)) throw new Error("Statut invalide");
-
-    return this.update(id, { status: newStatus });
+    const match = await this.matchRepository.findById(id);
+    if (!match) return null;
+    await this.matchRepository.update(match, { status: newStatus });
+    return new Match(match.toJSON());
   }
+
+  // --- LA GROSSE FONCTION UPDATE RESULT (ADAPTÉE REPO) ---
   async updateResult(id, result) {
-    const match = await MatchModel.findByPk(id);
-    if (!match) {
-      throw new Error("Match introuvable");
-    }
-
     const validResults = ["home", "away", "draw"];
-    if (!validResults.includes(result)) {
-      throw new Error("Résultat invalide");
-    }
+    if (!validResults.includes(result)) throw new Error("Résultat invalide");
 
-    match.status = "completed";
-    match.result = result;
-    await match.save();
+    // 1. On lance la transaction VIA LE REPO
+    const transaction = await this.matchRepository.startTransaction();
 
-    // (Important) Résolution des paris
-    const bets = await Bet.findAll({ where: { matchId: match.id } });
+    try {
+      // On passe { transaction } au repo
+      const match = await this.matchRepository.findById(id, { transaction });
 
-    for (const bet of bets) {
-      const user = await User.findByPk(bet.userId);
+      if (!match) throw new Error("Match introuvable");
 
-      let status;
-      let gain = 0;
-
-      if (bet.prediction === result) {
-        status = "won";
-        gain = bet.amount * bet.odds;
-
-        // Mise des stat et gains
-        await user.update({
-          betsWon: (user.betsWon || 0) + 1,
-          totalEarnings: (user.totalEarnings || 0) + gain,
-        });
-      } else {
-        status = "lost";
+      // Sécurité anti-doublon
+      if (match.result !== null) {
+        await transaction.rollback();
+        throw new Error("Résultat déjà validé.");
       }
 
-      await bet.update({ status, gain });
-    }
-
-    return match;
-  }
-  // mise a jour job match
-  async getMatchesToUpdate() {
-    try {
-      const rows = await MatchModel.findAll({
-        where: {
-          status: {
-            [Op.in]: ["scheduled", "live"],
-          },
+      // 2. Mise à jour via le repo
+      // Note: match.result = result ne sauvegarde pas, il faut appeler save ou update
+      await this.matchRepository.update(
+        match,
+        {
+          status: "completed",
+          result: result,
         },
+        { transaction }
+      );
+
+      // 3. Gestion des Paris (Code inchangé pour l'instant)
+      const bets = await Bet.findAll({
+        where: { matchId: match.id },
+        transaction,
       });
-      return rows.map((row) => new Match(row.toJSON()));
-    } catch (err) {
-      console.error("Erreur service.getMatchesToUpdate:", err);
-      throw err;
+
+      for (const bet of bets) {
+        const user = await User.findByPk(bet.userId, { transaction });
+        let status = "lost";
+        let gain = 0;
+
+        if (bet.prediction === result) {
+          status = "won";
+          gain = parseFloat(bet.amount) * parseFloat(bet.odds);
+          if (user) {
+            await user.update(
+              {
+                betsWon: (user.betsWon || 0) + 1,
+                totalEarnings: (user.totalEarnings || 0) + gain,
+              },
+              { transaction }
+            );
+          }
+        }
+        await bet.update({ status, gain }, { transaction });
+      }
+
+      // 4. Validation
+      await transaction.commit();
+
+      // 5. Tournoi
+      if (match.tournamentId) {
+        await this.tournamentService.checkAutoCompletion(match.tournamentId);
+      }
+
+      return new Match(match.toJSON());
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
+  }
+
+  // Création
+  async createMatch(data) {
+    // (Ta logique de création ici, simplifiée pour l'exemple)
+    const row = await this.matchRepository.create(data);
+    return new Match(row.toJSON());
+  }
+
+  async deleteMatch(id) {
+    return await this.matchRepository.delete(id);
   }
 }
 

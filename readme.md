@@ -136,3 +136,32 @@ React → Routes → Validators → Controller → Service → Sequelize → MyS
 Les méthodes de Service Controller accompagné d'un \* sont des fonctions non finie car pas determinante pour l'énoncer/ la demande
 Fonctionnalité contact non finie
 Fonctionnalité de modification et suppression d'équipe non faite récupération individuelles des équipes non faites accès à la liste des équipes que par l'admin (à changer)
+
+# Projet EsportEvo - Fullstack Dockerisé
+
+## Prérequis
+
+- Avoir Docker et Docker Compose installés.
+
+## Installation et Lancement
+
+1. Clonez ce dépôt :
+   `git clone https://github.com/ton-pseudo/ton-repo.git`
+
+2. Allez dans le dossier :
+   `cd ton-repo`
+
+3. Lancez l'application (Compilation + Lancement) :
+   `docker-compose up --build`
+
+4. Accédez à l'application :
+   - Frontend : http://localhost:8080
+   - API : http://localhost:5000
+
+## Peupler la Base de Données (Seed)
+
+Une fois l'application lancée et la base de données prête, dans un nouveau terminal il faut lancer:
+
+`docker-compose exec api npm run seed`
+
+Cela va créer les utilisateurs, les équipes et les matchs de test.
