@@ -1,5 +1,5 @@
 import User from "../domain/User.js";
-import bcrypt from "bcrypt"; // Toujours nécessaire pour le login (compare)
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 class UserService {

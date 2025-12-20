@@ -1,40 +1,39 @@
-import {
-  Bet as BetModel,
-  User as UserModel,
-  Match as MatchModel,
-  Team as TeamModel,
-} from "../models/index.js";
 import Bet from "../domain/Bet.js";
 
 class BetService {
+  // On injecte les 3 repos dont on a besoin
+  constructor(betRepository, matchRepository, userRepository) {
+    this.betRepository = betRepository;
+    this.matchRepository = matchRepository;
+    this.userRepository = userRepository;
+  }
+
   async create(data) {
-    // 1. VÉRIFICATION ANTI-DOUBLON
-    // CORRECTION ICI : On utilise BetModel, pas Bet !
-    const existingBet = await BetModel.findOne({
-      where: {
-        userId: data.userId,
-        matchId: data.matchId,
-      },
-    });
+    // 1. VÉRIFICATION ANTI-DOUBLON (Via BetRepo)
+    const existingBet = await this.betRepository.findExisting(
+      data.userId,
+      data.matchId
+    );
 
     if (existingBet) {
       throw new Error("Vous avez déjà parié sur ce match !");
     }
 
-    // 2. VÉRIFICATION DU MATCH
-    const match = await MatchModel.findByPk(data.matchId);
+    // 2. VÉRIFICATION DU MATCH (Via MatchRepo)
+    const match = await this.matchRepository.findById(data.matchId);
+
     if (!match) {
       const error = new Error("Match introuvable");
       error.status = 404;
       throw error;
     }
 
-    // AJOUT SÉCURITÉ : On ne parie pas sur un match fini ou en cours
+    // SÉCURITÉ : Statut
     if (match.status !== "scheduled") {
       throw new Error("Les paris sont fermés pour ce match.");
     }
 
-    // 3. RÉCUPÉRATION DES COTES
+    // 3. RÉCUPÉRATION DES COTES (Logique métier)
     let odds = null;
     if (data.prediction === "home") odds = match.oddsHome;
     else if (data.prediction === "away") odds = match.oddsAway;
@@ -44,59 +43,39 @@ class BetService {
       throw new Error("Prédiction invalide ou cote introuvable.");
     }
 
-    // 4. CALCUL DU GAIN (SÉCURITÉ)
-    // On ne fait pas confiance au 'data.potentialGain' envoyé par le front (qui peut être falsifié)
-    // On le calcule nous-même : Montant * Cote
+    // 4. CALCUL DU GAIN
     const calculatedGain = parseFloat((data.amount * odds).toFixed(2));
 
     try {
-      const row = await BetModel.create({
+      // 5. CRÉATION (Via BetRepo)
+      const row = await this.betRepository.create({
         userId: data.userId,
         matchId: data.matchId,
         amount: data.amount,
         prediction: data.prediction,
         odds: odds,
-        potentialGain: calculatedGain, // On utilise notre calcul sécurisé
+        potentialGain: calculatedGain,
         status: "pending",
       });
 
-      await UserModel.increment("betsTotal", { where: { id: data.userId } });
+      // 6. INCRÉMENTATION STATS (Via UserRepo)
+      // On n'appelle plus UserModel directement
+      await this.userRepository.incrementStat(data.userId, "betsTotal");
 
+      // Note: Idéalement, on inclurait le match dans le retour,
+      // mais pour une création rapide, renvoyer l'objet simple suffit souvent.
       return new Bet(row.toJSON());
     } catch (dbError) {
-      console.error("ERREUR CRÉATION PARI DB (Sequelize):", dbError.message);
+      console.error("ERREUR SERVICE PARI:", dbError.message);
       throw dbError;
     }
   }
 
   async getByUser(userId) {
-    const rows = await BetModel.findAll({
-      where: { userId },
-      include: [
-        {
-          model: MatchModel,
-
-          include: [
-            {
-              model: TeamModel,
-              as: "homeTeam",
-            },
-            {
-              model: TeamModel,
-              as: "awayTeam",
-            },
-          ],
-        },
-
-        {
-          model: UserModel,
-          as: "user",
-        },
-      ],
-      order: [["createdAt", "DESC"]],
-    });
-
-    return rows.map((row) => row.toJSON());
+    const rows = await this.betRepository.findByUser(userId);
+    // On transforme chaque ligne brute (Sequelize) en objet Domaine (Bet)
+    return rows.map((row) => new Bet(row.toJSON()));
   }
 }
+
 export default BetService;

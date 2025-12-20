@@ -10,19 +10,14 @@ class UserRepository {
   }
 
   async findAll() {
-    return await User.findAll({
-      order: [["createdAt", "DESC"]],
-    });
+    return await User.findAll({ order: [["createdAt", "DESC"]] });
   }
 
-  // C'est ici que Sequelize prend le relais.
-  // Quand on appelle User.create, le Hook 'beforeCreate' du modèle se déclenche.
   async create(data) {
     return await User.create(data);
   }
 
   async update(userInstance, data, options = {}) {
-    // Si data contient un password, le Hook 'beforeUpdate' du modèle le hasheras.
     return await userInstance.update(data, options);
   }
 
@@ -31,6 +26,22 @@ class UserRepository {
     if (!user) return false;
     await user.destroy();
     return true;
+  }
+
+  /**
+   * Permet d'ajouter une valeur à une colonne numérique (stats, gains)
+   * sans avoir besoin de lire l'utilisateur avant.
+   * @param {number} userId - L'ID du joueur
+   * @param {string} field - Le nom de la colonne ('betsTotal', 'totalEarnings'...)
+   * @param {object} options - Pour passer une transaction { transaction: t }
+   */
+  async incrementStat(userId, field, options = {}) {
+    // La méthode .increment de Sequelize génère un :
+    // UPDATE users SET field = field + 1 WHERE id = userId
+    return await User.increment(field, {
+      where: { id: userId },
+      ...options,
+    });
   }
 }
 

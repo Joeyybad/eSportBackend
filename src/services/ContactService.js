@@ -1,22 +1,34 @@
-import { Contact as ContactModel, User } from "../models/index.js";
 import Contact from "../domain/Contact.js";
 
 class ContactService {
+  // Injection du Repository
+  constructor(contactRepository) {
+    this.contactRepository = contactRepository;
+  }
+
   async create(data) {
-    const row = await ContactModel.create(data);
+    const row = await this.contactRepository.create(data);
     return new Contact(row.toJSON());
   }
 
   async getAll() {
-    const rows = await ContactModel.findAll({ include: [User] });
+    // Appel au repo
+    const rows = await this.contactRepository.findAll();
 
-    return rows.map(
-      (r) =>
-        new Contact({
-          ...r.toJSON(),
-          user: r.user ? r.user.toJSON() : null,
-        })
-    );
+    // Mapping vers le domaine
+    return rows.map((r) => {
+      const json = r.toJSON();
+      return new Contact({
+        ...json,
+        // Gestion sécurisée de l'objet user imbriqué
+        user: json.User ? json.User : null,
+      });
+    });
+  }
+
+  async deleteMessage(id) {
+    return await this.contactRepository.delete(id);
   }
 }
+
 export default ContactService;

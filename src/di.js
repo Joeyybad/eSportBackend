@@ -1,5 +1,9 @@
+import UserRepository from "./repositories/UserRepository.js";
 import MatchRepository from "./repositories/MatchRepository.js";
 import TeamRepository from "./repositories/TeamRepository.js";
+import BetRepository from "./repositories/BetRepository.js";
+import ContactRepository from "./repositories/ContactRepository.js";
+import TournamentRepository from "./repositories/TournamentRepository.js";
 
 import UserService from "./services/UserService.js";
 import TeamService from "./services/TeamService.js";
@@ -16,16 +20,27 @@ import BetController from "./controllers/betController.js";
 import ContactController from "./controllers/contactController.js";
 
 // INITIALISATION DES REPOSITORIES
+const userRepository = new UserRepository();
 const teamRepository = new TeamRepository();
 const matchRepository = new MatchRepository();
+const betRepository = new BetRepository();
+const contactRepository = new ContactRepository();
+const tournamentRepository = new TournamentRepository();
 
 // INITIALISATION DES SERVICES (singletons)
-export const userService = new UserService();
-export const teamService = new TeamService(new TeamRepository());
-export const matchService = new MatchService(new MatchRepository());
-export const tournamentService = new TournamentService();
-export const betService = new BetService();
-export const contactService = new ContactService();
+export const userService = new UserService(userRepository);
+export const teamService = new TeamService(teamRepository);
+export const matchService = new MatchService(matchRepository);
+export const betService = new BetService(
+  betRepository,
+  matchRepository,
+  userRepository
+);
+export const contactService = new ContactService(contactRepository);
+export const tournamentService = new TournamentService(
+  tournamentRepository,
+  matchRepository
+);
 
 // INITIALISATION DES CONTROLLERS
 export const userController = new UserController(userService);
