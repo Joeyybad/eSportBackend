@@ -3,34 +3,37 @@ class UserController {
     this.service = userService;
   }
   // Récupérer le profile user
-  getProfile = async (req, res) => {
+  getProfile = async (req, res, next) => {
     try {
       const user = await this.service.getById(req.user.id);
       res.json(user);
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      next(err);
     }
   };
   // Inscription utilisateur
-  signup = async (req, res) => {
+  signup = async (req, res, next) => {
     try {
       const user = await this.service.create(req.body);
       res.status(201).json(user);
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      next(err);
     }
   };
   //Connexion utilisateur
-  login = async (req, res) => {
+  login = async (req, res, next) => {
     try {
-      const { token, user } = await this.service.login(req.body);
-      res.json({ token, user });
+      const { email, password } = req.body;
+
+      const data = await this.service.login(email, password);
+
+      res.json(data);
     } catch (err) {
-      res.status(401).json({ message: err.message });
+      next(err);
     }
   };
   // Modification du profil user
-  updateProfile = async (req, res) => {
+  updateProfile = async (req, res, next) => {
     try {
       // transformer les champs Array qui ont été envoyé en json
       const data = {
@@ -47,10 +50,10 @@ class UserController {
 
       res.json({ user: updatedUser });
     } catch (err) {
-      res.status(400).json({ message: err.message });
+      next(err);
     }
   };
-  verifyToken = async (req, res) => {
+  verifyToken = async (req, res, next) => {
     res.sendStatus(200);
   };
 }

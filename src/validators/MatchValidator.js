@@ -5,6 +5,10 @@ export default {
     check("homeTeamId").isInt().withMessage("homeTeamId doit être un entier"),
     check("awayTeamId").isInt().withMessage("awayTeamId doit être un entier"),
     check("oddsHome").isFloat().withMessage("oddsHome doit être un nombre"),
+    check("oddsDraw")
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage("oddsDraw doit être positif ou 0"),
     check("oddsAway").isFloat().withMessage("oddsAway doit être un nombre"),
     check("date")
       .notEmpty()
@@ -41,8 +45,8 @@ export default {
 
     check("oddsDraw")
       .optional()
-      .isFloat()
-      .withMessage("oddsDraw doit être un nombre"),
+      .isFloat({ min: 0 })
+      .withMessage("oddsDraw doit être positif ou 0"),
 
     check("date").optional().isISO8601().withMessage("date invalide"),
 

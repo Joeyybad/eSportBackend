@@ -9,7 +9,8 @@ class Bet {
     status, // pending / won / lost
     createdAt,
     updatedAt,
-    match = null, // association facultative
+    Match,
+    match,
   }) {
     this.id = id;
     this.userId = userId;
@@ -21,6 +22,7 @@ class Bet {
     this.match = match;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.Match = Match || match || null;
   }
 
   payout() {
@@ -37,7 +39,7 @@ class Bet {
       odds: this.odds,
       status: this.status,
       payout: this.payout(),
-      match: this.match,
+      Match: this.Match,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

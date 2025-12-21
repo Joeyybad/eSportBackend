@@ -76,6 +76,8 @@ const Match = sequelize.define(
   {
     tableName: "matches",
     timestamps: true,
+    paranoid: true,
+    deletedAt: "deleted_at",
   }
 );
 

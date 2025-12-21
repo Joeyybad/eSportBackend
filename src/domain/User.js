@@ -4,6 +4,7 @@ class User {
     username,
     email,
     role,
+    isAdmin,
     createdAt,
     updatedAt,
     avatar,
@@ -22,6 +23,9 @@ class User {
     this.email = email;
     this.role = role;
 
+    this.isAdmin = isAdmin;
+    this.role = role || (isAdmin ? "admin" : "user");
+
     this.avatar = avatar || "";
     this.favoritesGames = favoritesGames || [];
     this.favoritesTeams = favoritesTeams || [];
@@ -37,15 +41,15 @@ class User {
     this.Bets = Bets || [];
   }
 
-  isAdmin() {
-    return this.role === "admin";
+  checkIsAdmin() {
+    return this.isAdmin == 1 || this.isAdmin === true || this.role === "admin";
   }
-
   toJSON() {
     return {
       id: this.id,
       username: this.username,
       email: this.email,
+      isAdmin: this.isAdmin,
       role: this.role,
       avatar: this.avatar,
       favoritesGames: this.favoritesGames,

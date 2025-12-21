@@ -6,7 +6,14 @@ class TeamRepository {
   }
 
   async findAndCountAll(options = {}) {
-    return await TeamModel.findAndCountAll(options);
+    const queryOptions = {
+      ...options, // On garde la pagination (limit, offset)
+      where: {
+        ...options.where, // On garde les filtres existants (ex: recherche)
+        deleted_at: null,
+      },
+    };
+    return await TeamModel.findAndCountAll(queryOptions);
   }
 
   async findById(id) {
@@ -17,10 +24,8 @@ class TeamRepository {
     return await TeamModel.create(data);
   }
 
-  async update(id, data) {
-    const team = await this.findById(id);
-    if (!team) return null;
-    return await team.update(data);
+  async update(teamInstance, data) {
+    return await teamInstance.update(data);
   }
 
   async delete(id) {

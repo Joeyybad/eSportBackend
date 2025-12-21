@@ -3,7 +3,7 @@ class MatchController {
     this.service = matchService;
   }
   //Récupère tous les matchs
-  getAllMatches = async (req, res) => {
+  getAllMatches = async (req, res, next) => {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 6;
@@ -12,11 +12,11 @@ class MatchController {
 
       res.json(result);
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      next(err);
     }
   };
   // Récupère les match par Id
-  getMatchById = async (req, res) => {
+  getMatchById = async (req, res, next) => {
     try {
       const id = req.params.id;
       if (!id) return res.status(400).json({ message: "ID manquant." });
@@ -25,31 +25,31 @@ class MatchController {
 
       res.json(match);
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      next(err);
     }
   };
   // Crée un match
-  create = async (req, res) => {
+  create = async (req, res, next) => {
     try {
-      const match = await this.service.create(req.body);
+      const match = await this.service.createMatch(req.body);
       res.status(201).json(match);
     } catch (err) {
-      res.status(400).json({ message: err.message });
+      next(err);
     }
   };
   //Met à jour un match
-  update = async (req, res) => {
+  update = async (req, res, next) => {
     try {
       const match = await this.service.update(req.params.id, req.body);
       if (!match) return res.status(404).json({ message: "Match introuvable" });
 
       res.json(match);
     } catch (err) {
-      res.status(400).json({ message: err.message });
+      next(err);
     }
   };
   //Met à jour le résultat d'un match
-  updateMatchResult = async (req, res) => {
+  updateMatchResult = async (req, res, next) => {
     try {
       const { id } = req.params;
       const { result } = req.body; // ("home" | "away" | "draw")
@@ -61,12 +61,11 @@ class MatchController {
         match: updatedMatch,
       });
     } catch (err) {
-      const status = err.message.includes("introuvable") ? 404 : 400;
-      res.status(status).json({ message: err.message });
+      next(err);
     }
   };
   // Suppression d'un match
-  delete = async (req, res) => {
+  delete = async (req, res, next) => {
     try {
       const success = await this.service.delete(req.params.id);
       if (!success)
@@ -74,7 +73,7 @@ class MatchController {
 
       res.json({ message: "Match supprimé" });
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      next(err);
     }
   };
 }

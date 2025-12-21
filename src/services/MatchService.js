@@ -52,23 +52,24 @@ class MatchService {
     const validResults = ["home", "away", "draw"];
     if (!validResults.includes(result)) throw new Error("Résultat invalide");
 
-    // 1. On lance la transaction VIA LE REPO
     const transaction = await this.matchRepository.startTransaction();
 
+    // 🚩 1. On crée un indicateur de sécurité
+    let transactionFinished = false;
+
     try {
-      // On passe { transaction } au repo
       const match = await this.matchRepository.findById(id, { transaction });
 
       if (!match) throw new Error("Match introuvable");
 
-      // Sécurité anti-doublon
       if (match.result !== null) {
+        // On doit rollback ici car on n'a pas encore commit
         await transaction.rollback();
+        transactionFinished = true; // On marque comme fini
         throw new Error("Résultat déjà validé.");
       }
 
-      // 2. Mise à jour via le repo
-      // Note: match.result = result ne sauvegarde pas, il faut appeler save ou update
+      // Mise à jour du match
       await this.matchRepository.update(
         match,
         {
@@ -78,7 +79,7 @@ class MatchService {
         { transaction }
       );
 
-      // 3. Gestion des Paris (Code inchangé pour l'instant)
+      // Gestion des Paris (paiement des gagnants)
       const bets = await Bet.findAll({
         where: { matchId: match.id },
         transaction,
@@ -105,21 +106,32 @@ class MatchService {
         await bet.update({ status, gain }, { transaction });
       }
 
-      // 4. Validation
+      // ✅ 2. On valide la transaction
       await transaction.commit();
+      transactionFinished = true; // 🚩 C'est fini, on ne touche plus à la transaction
 
-      // 5. Tournoi
-      if (match.tournamentId) {
-        await this.tournamentService.checkAutoCompletion(match.tournamentId);
+      // 3. Gestion du Tournoi (C'est souvent ici que ça plante si le service est mal injecté)
+      // Si ça plante ici, le match restera validé (car commit est passé), ce qui est mieux que de tout casser.
+      if (match.tournamentId && this.tournamentService) {
+        try {
+          await this.tournamentService.checkAutoCompletion(match.tournamentId);
+        } catch (tournamentError) {
+          console.error(
+            "Erreur mise à jour tournoi (non bloquant) :",
+            tournamentError
+          );
+        }
       }
 
       return new Match(match.toJSON());
     } catch (error) {
-      await transaction.rollback();
+      // 🚩 4. On rollback SEULEMENT si la transaction n'est pas déjà finie
+      if (!transactionFinished) {
+        await transaction.rollback();
+      }
       throw error;
     }
   }
-
   // Création
   async createMatch(data) {
     // (Ta logique de création ici, simplifiée pour l'exemple)
@@ -127,7 +139,19 @@ class MatchService {
     return new Match(row.toJSON());
   }
 
-  async deleteMatch(id) {
+  // Mise à jour
+  async update(id, data) {
+    const match = await this.matchRepository.findById(id);
+
+    if (!match) {
+      throw new Error("Match introuvable");
+    }
+    await this.matchRepository.update(match, data);
+
+    return new Match(match.toJSON());
+  }
+
+  async delete(id) {
     return await this.matchRepository.delete(id);
   }
 }

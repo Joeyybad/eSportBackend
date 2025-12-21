@@ -6,7 +6,7 @@ class ContactRepository {
     return await ContactModel.create(data);
   }
 
-  // Récupérer tous les messages (pour l'admin)
+  // Récupérer tous les messages
   async findAll() {
     return await ContactModel.findAll({
       include: [
@@ -16,11 +16,11 @@ class ContactRepository {
           attributes: ["id", "username", "email"],
         },
       ],
-      order: [["createdAt", "DESC"]], // Les plus récents en haut
+      order: [["createdAt", "DESC"]],
     });
   }
 
-  // Supprimer un message (utile pour l'admin)
+  // Supprimer un message
   async delete(id) {
     const message = await ContactModel.findByPk(id);
     if (!message) return false;
